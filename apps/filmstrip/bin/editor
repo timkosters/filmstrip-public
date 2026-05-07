@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# Usage: bin/editor [--manifest <path>] [--port <number>]
+#
+# Launches the visual poster editor:
+#   - Canvas at 900x674 with text/logo preview
+#   - Drag + corner-resize + rotate on each video window (Moveable.js)
+#   - Inspector panel for precise x/y/w/h + timing edits
+#   - Timeline of all clips
+#   - Save button writes directly to the manifest JSON
+#
+# Defaults: manifest = manifests/example.json unless a local starter exists, port = 5959
+set -euo pipefail
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$(cd "$HERE/.." && pwd)"
+
+MANIFEST=""
+PORT=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --manifest) MANIFEST="$2"; shift 2;;
+    --port) PORT="$2"; shift 2;;
+    *) echo "Unknown flag: $1"; exit 1;;
+  esac
+done
+
+[ -n "$MANIFEST" ] && export EDITOR_MANIFEST="$MANIFEST"
+[ -n "$PORT" ] && export EDITOR_PORT="$PORT"
+
+exec node "$ROOT/editor/server.mjs"

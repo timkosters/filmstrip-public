@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1536 1024" role="img" aria-label="Abstract station platform photo placeholder">
+  <defs>
+    <linearGradient id="dusk" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#6b8793"/>
+      <stop offset="0.58" stop-color="#e0b57a"/>
+      <stop offset="1" stop-color="#4a3b35"/>
+    </linearGradient>
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer>
+        <feFuncA type="table" tableValues="0 0.2"/>
+      </feComponentTransfer>
+      <feBlend mode="multiply" in2="SourceGraphic"/>
+    </filter>
+  </defs>
+  <rect width="1536" height="1024" fill="url(#dusk)"/>
+  <rect y="695" width="1536" height="84" fill="#efe4ce"/>
+  <rect y="775" width="1536" height="249" fill="#51463d"/>
+  <path d="M0 780 L1536 690 L1536 775 L0 865 Z" fill="#2f3f45"/>
+  <rect x="220" y="240" width="210" height="455" fill="#314b58"/>
+  <rect x="520" y="185" width="660" height="130" rx="16" fill="#f1e2c0"/>
+  <rect x="555" y="220" width="130" height="40" rx="10" fill="#bf5a3d"/>
+  <rect x="720" y="220" width="370" height="40" rx="10" fill="#647e72"/>
+  <circle cx="1260" cy="630" r="72" fill="#f3d185"/>
+  <rect width="1536" height="1024" filter="url(#grain)" opacity="0.32"/>
+</svg>

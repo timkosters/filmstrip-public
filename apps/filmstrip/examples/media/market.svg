@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1536 1024" role="img" aria-label="Abstract market table photo placeholder">
+  <defs>
+    <linearGradient id="sky" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#dce9ef"/>
+      <stop offset="1" stop-color="#f6d9b8"/>
+    </linearGradient>
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer>
+        <feFuncA type="table" tableValues="0 0.16"/>
+      </feComponentTransfer>
+      <feBlend mode="multiply" in2="SourceGraphic"/>
+    </filter>
+  </defs>
+  <rect width="1536" height="1024" fill="url(#sky)"/>
+  <rect y="640" width="1536" height="384" fill="#9f704c"/>
+  <rect x="150" y="460" width="1236" height="210" rx="28" fill="#f4efe1"/>
+  <rect x="190" y="500" width="1156" height="52" rx="12" fill="#d9643a"/>
+  <circle cx="320" cy="615" r="54" fill="#f1b84a"/>
+  <circle cx="450" cy="604" r="42" fill="#4f8f62"/>
+  <circle cx="585" cy="620" r="58" fill="#d64f3c"/>
+  <rect x="760" y="555" width="250" height="94" rx="20" fill="#2f5f73"/>
+  <rect x="1050" y="525" width="220" height="132" rx="18" fill="#e9c07a"/>
+  <path d="M0 350 C260 300 350 395 560 345 C850 275 1060 375 1536 300 L1536 0 L0 0 Z" fill="#f9f3e6" opacity="0.42"/>
+  <rect width="1536" height="1024" filter="url(#grain)" opacity="0.35"/>
+</svg>

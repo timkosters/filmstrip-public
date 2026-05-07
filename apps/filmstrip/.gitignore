@@ -1,0 +1,20 @@
+# Deps
+node_modules/
+remotion-poster/node_modules/
+
+# User media (keep out of git)
+remotion-poster/downloads/
+remotion-poster/public/assets/
+ai-images/
+
+# Runtime artifacts
+remotion-poster/out/
+remotion-poster/.remotion/
+
+# Per-user working manifests (keep example.json as the template)
+manifests/starter.json
+manifests/*-local.json
+
+# OS
+.DS_Store
+Thumbs.db

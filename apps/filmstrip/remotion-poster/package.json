@@ -1,0 +1,27 @@
+{
+  "name": "filmstrip-remotion",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "preview": "remotion preview src/index.ts",
+    "render": "remotion render src/index.ts Poster out/poster.mp4",
+    "still": "remotion still src/index.ts PosterStill out/poster.jpg",
+    "gif": "remotion render src/index.ts Poster out/poster.gif --codec=gif",
+    "make": "node scripts/make-poster.mjs",
+    "check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.458",
+    "@remotion/google-fonts": "4.0.458",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "remotion": "4.0.458"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "@types/react": "^18.2.79",
+    "@types/react-dom": "^18.2.25",
+    "typescript": "^5.4.5"
+  }
+}

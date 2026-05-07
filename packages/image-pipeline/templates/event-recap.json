@@ -1,0 +1,33 @@
+{
+  "name": "Event Recap",
+  "context": "A generic community event recap. Replace this with the venue, date, event type, attendee profile, and what made it memorable.",
+  "style": "Disposable-camera or point-and-shoot event photos, direct flash, mixed indoor/outdoor light, candid groups, imperfect crop, high energy, real-world mess.",
+  "safety": "Use fictional adults unless the user provides consented references. Avoid private information, readable name tags, brand logos, alcohol focus, unsafe activity, watermarks, and identifiable minors.",
+  "textPolicy": "If signage appears, keep it generic, partial, or unreadable unless the user supplies approved public event text.",
+  "shots": [
+    {
+      "id": "01",
+      "intent": "People arriving and finding the space, with the venue energy visible.",
+      "people": "fictional adults, backs or side profiles preferred",
+      "style": "wide event snapshot, entrance or gathering area, direct flash"
+    },
+    {
+      "id": "02",
+      "intent": "A hands-on activity, demo, workshop, or shared table moment.",
+      "people": "fictional adults, hands and partial profiles",
+      "style": "busy table, tools or laptops, flash glare, candid"
+    },
+    {
+      "id": "03",
+      "intent": "A small group laughing or reacting to a shared moment.",
+      "people": "fictional adults, no real likeness",
+      "style": "close candid frame, slight blur, warm room light"
+    },
+    {
+      "id": "04",
+      "intent": "The end of the event: chairs, notes, leftover materials, or a final group moment.",
+      "people": "optional distant figures",
+      "style": "afterglow, imperfect framing, grounded physical details"
+    }
+  ]
+}

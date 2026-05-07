@@ -1,0 +1,5 @@
+.env
+node_modules/
+campaigns/*/shots/
+campaigns/*/approved/
+.DS_Store

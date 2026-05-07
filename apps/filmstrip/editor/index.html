@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Poster Editor</title>
+    <link rel="stylesheet" href="/editor.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/moveable@0.53.0/dist/moveable.min.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="left">
+        <strong>Poster Editor</strong>
+        <select id="project-select" class="topbar-select" title="Switch project"></select>
+        <button id="project-new" class="ghost" title="Create new project">＋ New</button>
+        <button id="project-branch" class="ghost" title="Duplicate the current project as a new version">Branch</button>
+        <span id="manifest-path" class="muted"></span>
+      </div>
+      <div class="right">
+        <label class="topbar-duration" title="Total poster duration in seconds">
+          Total (s)
+          <input id="poster-duration" type="number" step="0.5" min="2" />
+        </label>
+        <button id="add-clip">+ Clip</button>
+        <button id="play-pause">▶︎ Play</button>
+        <button id="save">Save</button>
+        <button id="export" class="primary">Export MP4</button>
+        <span id="save-status" class="muted"></span>
+      </div>
+    </header>
+
+    <main>
+      <section class="stage-wrap">
+        <div id="stage">
+          <div id="paper"></div>
+          <div id="text-layer"></div>
+          <div id="logo-layer"></div>
+          <div id="windows-layer"></div>
+        </div>
+      </section>
+
+      <aside class="inspector">
+        <details id="library-panel" open>
+          <summary>Source library</summary>
+          <ul id="library-list"></ul>
+          <p class="muted small">Click a video/image to add as a clip. Click an audio file to set as music.</p>
+        </details>
+        <hr />
+        <details id="text-panel" open>
+          <summary>Text</summary>
+          <div id="text-blocks-list"></div>
+          <p class="muted small">Edit copy, position, and size. Content uses one line per line.</p>
+        </details>
+        <hr />
+        <details id="music-panel" open>
+          <summary>Music</summary>
+          <div id="music-form">
+            <label>Track
+              <select id="music-file"><option value="">(none)</option></select>
+            </label>
+            <div class="row">
+              <label>Start (s)
+                <input id="music-startFrom" type="number" step="0.1" min="0" value="0" />
+              </label>
+              <label>Volume
+                <input id="music-volume" type="number" step="0.05" min="0" max="1" value="0.7" />
+              </label>
+            </div>
+            <div class="row">
+              <label>Fade in (fr)
+                <input id="music-fadeInFrames" type="number" step="1" min="0" value="30" />
+              </label>
+              <label>Fade out (fr)
+                <input id="music-fadeOutFrames" type="number" step="1" min="0" value="45" />
+              </label>
+            </div>
+            <button id="music-preview" class="ghost">Mute preview</button>
+            <button id="music-clear" class="danger">Remove music</button>
+          </div>
+        </details>
+        <hr />
+        <div id="selected-empty" class="muted">Click a clip to edit.</div>
+        <div id="selected-form" hidden>
+          <label>File
+            <select id="field-file"></select>
+          </label>
+          <div class="row">
+            <label>Clip start
+              <input id="field-clipStart" type="text" placeholder="00:00" />
+            </label>
+            <label>Duration (s)
+              <input id="field-clipDuration" type="number" step="0.1" min="0.5" />
+            </label>
+          </div>
+          <div class="row">
+            <label>Poster start (s)
+              <input id="field-posterStart" type="number" step="0.1" min="0" />
+            </label>
+            <label>Poster end (s)
+              <input id="field-posterEnd" type="number" step="0.1" min="0" />
+            </label>
+          </div>
+          <div class="row">
+            <label>Fade (frames)
+              <input id="field-fadeFrames" type="number" step="1" min="0" />
+            </label>
+            <label>Rotation (°)
+              <input id="field-rotation" type="number" step="0.5" />
+            </label>
+          </div>
+          <div class="row">
+            <label>X
+              <input id="field-x" type="number" step="1" />
+            </label>
+            <label>Y
+              <input id="field-y" type="number" step="1" />
+            </label>
+          </div>
+          <div class="row">
+            <label>W
+              <input id="field-width" type="number" step="1" min="20" />
+            </label>
+            <label>H
+              <input id="field-height" type="number" step="1" min="20" />
+            </label>
+          </div>
+          <button id="field-delete" class="danger">Delete clip</button>
+        </div>
+      </aside>
+    </main>
+
+    <div id="export-modal" hidden>
+      <div class="modal-card">
+        <header>
+          <strong id="export-title">Export</strong>
+          <button id="export-close" class="ghost">✕</button>
+        </header>
+        <div id="export-body">
+          <label>Filename
+            <input id="export-filename" type="text" value="poster" />
+          </label>
+          <div id="export-progress" hidden>
+            <div class="progress-bar"><div id="export-progress-fill"></div></div>
+            <div id="export-phase" class="muted small"></div>
+          </div>
+          <div id="export-result" hidden>
+            <p class="muted small">Saved to:</p>
+            <code id="export-path"></code>
+            <div class="button-row">
+              <button id="export-open-folder">Reveal in Finder</button>
+              <button id="export-open-file">Open in QuickTime</button>
+              <button id="export-copy-path">Copy path</button>
+            </div>
+          </div>
+          <div id="export-error" hidden class="muted small"></div>
+        </div>
+        <footer>
+          <button id="export-start" class="primary">Start render</button>
+          <button id="export-cancel" class="ghost">Close</button>
+        </footer>
+      </div>
+    </div>
+
+    <section class="timeline-wrap">
+      <div id="timeline"></div>
+      <div id="timeline-playhead"></div>
+      <div id="timeline-labels"></div>
+    </section>
+
+    <script src="/editor.js"></script>
+  </body>
+</html>

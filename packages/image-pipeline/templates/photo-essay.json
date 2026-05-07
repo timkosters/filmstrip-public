@@ -1,0 +1,33 @@
+{
+  "name": "Photo Essay",
+  "context": "A short visual essay built from plausible candid moments. Replace this with the topic, place, audience, and emotional arc.",
+  "style": "Photorealistic found-photo sequence, natural light or direct flash, imperfect framing, visible texture, ordinary details, no polished advertising look.",
+  "safety": "Use fictional people unless the user provides references and consent. Avoid private information, readable addresses, IDs, brand logos, watermarks, and misleading real-person claims.",
+  "textPolicy": "Avoid readable text unless a shot explicitly asks for short generic text. Keep signs, labels, and screens partial, blurred, or handmade.",
+  "shots": [
+    {
+      "id": "01",
+      "intent": "An establishing image that introduces the setting through objects, light, and place.",
+      "people": "none visible or distant figures only",
+      "style": "wide candid frame, natural light, specific environmental details"
+    },
+    {
+      "id": "02",
+      "intent": "A process image showing hands, tools, materials, or preparation.",
+      "people": "hands only if people are visible",
+      "style": "close crop, slight motion blur, tactile detail"
+    },
+    {
+      "id": "03",
+      "intent": "A social or emotional beat that shows the project becoming real.",
+      "people": "fictional adults or non-identifiable figures",
+      "style": "warm direct flash, candid gesture, unposed"
+    },
+    {
+      "id": "04",
+      "intent": "A final artifact or quiet aftermath image that closes the sequence.",
+      "people": "optional silhouettes or no people",
+      "style": "simple composition, evening light or soft indoor light"
+    }
+  ]
+}

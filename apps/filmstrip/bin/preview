@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Usage: bin/preview [--manifest <json>] [--images <dir>]
+#
+# Rebuilds the clip assets + props.json from your manifest, then opens
+# Remotion Studio. In Studio you get:
+#   - A live timeline with every clip as its own Sequence block
+#   - A scrubber to jump to any frame
+#   - Live-editable props on the right
+#
+# When you're happy, export with: bin/make-poster --manifest <same> --out <file>
+set -euo pipefail
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$(cd "$HERE/.." && pwd)"
+REMOTION_ROOT="$ROOT/remotion-poster"
+
+node "$REMOTION_ROOT/scripts/make-poster.mjs" "$@" --no-render
+
+cd "$REMOTION_ROOT"
+exec npx remotion studio src/index.ts --props="$REMOTION_ROOT/out/props.json"

@@ -1,0 +1,16 @@
+{
+  "name": "filmstrip",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "setup": "npm --prefix apps/filmstrip/remotion-poster install",
+    "check": "npm run check:filmstrip && npm run check:image-pipeline",
+    "check:filmstrip": "npm --prefix apps/filmstrip/remotion-poster run check",
+    "check:image-pipeline": "npm --prefix packages/image-pipeline run check",
+    "editor": "apps/filmstrip/bin/editor",
+    "preview:example": "apps/filmstrip/bin/preview --manifest apps/filmstrip/manifests/example.json",
+    "render:example": "apps/filmstrip/bin/make-poster --manifest apps/filmstrip/manifests/example.json --out apps/filmstrip/remotion-poster/out/example.mp4",
+    "still:example": "apps/filmstrip/bin/make-poster --manifest apps/filmstrip/manifests/example.json --still --out apps/filmstrip/remotion-poster/out/example.png"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "Untitled Image Campaign",
+  "context": "Describe the project, audience, mood, and real-world context here.",
+  "style": "Describe the shared visual style here.",
+  "safety": "List avoid rules, consent rules, brand rules, and trust constraints here.",
+  "textPolicy": "Say how generated images should treat text.",
+  "shots": [
+    {
+      "id": "01",
+      "intent": "Describe the first shot.",
+      "people": "none visible",
+      "style": "Shot-specific style notes."
+    }
+  ]
+}

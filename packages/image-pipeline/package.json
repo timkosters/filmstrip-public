@@ -1,0 +1,14 @@
+{
+  "name": "ai-image-pipeline",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "ai-image-pipeline": "./bin/ai-image-pipeline.mjs"
+  },
+  "scripts": {
+    "check": "node --check bin/ai-image-pipeline.mjs",
+    "demo:init": "node bin/ai-image-pipeline.mjs init demo-roll --template photo-essay --force",
+    "demo:prompt": "node bin/ai-image-pipeline.mjs prompt demo-roll 01"
+  }
+}

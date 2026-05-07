@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1536 1024" role="img" aria-label="Abstract workbench photo placeholder">
+  <defs>
+    <linearGradient id="paper" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#ede3d4"/>
+      <stop offset="1" stop-color="#c6d7d1"/>
+    </linearGradient>
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.72" numOctaves="3"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer>
+        <feFuncA type="table" tableValues="0 0.18"/>
+      </feComponentTransfer>
+      <feBlend mode="multiply" in2="SourceGraphic"/>
+    </filter>
+  </defs>
+  <rect width="1536" height="1024" fill="url(#paper)"/>
+  <rect x="0" y="620" width="1536" height="404" fill="#6f5139"/>
+  <rect x="250" y="450" width="1040" height="300" rx="34" fill="#f8f3e7"/>
+  <rect x="360" y="525" width="260" height="160" rx="18" fill="#253843"/>
+  <rect x="675" y="505" width="250" height="42" rx="12" fill="#cf6648"/>
+  <rect x="675" y="575" width="430" height="34" rx="10" fill="#7fa182"/>
+  <rect x="675" y="645" width="350" height="34" rx="10" fill="#d6a04d"/>
+  <circle cx="1160" cy="560" r="70" fill="#e7dfce"/>
+  <path d="M1150 430 L1225 650 L1065 650 Z" fill="#2e5e75" opacity="0.82"/>
+  <rect width="1536" height="1024" filter="url(#grain)" opacity="0.32"/>
+</svg>

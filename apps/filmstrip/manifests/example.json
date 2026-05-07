@@ -1,0 +1,135 @@
+{
+  "name": "Field Notes Demo",
+  "duration": 9,
+  "width": 900,
+  "height": 674,
+  "fps": 30,
+  "background": {
+    "color": "#faf7f0",
+    "textureOpacity": 0.22
+  },
+  "text": {
+    "color": "#1a1713",
+    "overlapColor": "#d65f36",
+    "titleFont": "\"EB Garamond\", Georgia, \"Times New Roman\", serif",
+    "monoFont": "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+    "blocks": [
+      {
+        "id": "kicker",
+        "content": ["Open image sequence"],
+        "left": 560,
+        "top": 54,
+        "width": 310,
+        "fontFamily": "title",
+        "fontSize": 22,
+        "lineHeight": 26,
+        "fontWeight": 500,
+        "italic": true,
+        "textAlign": "right"
+      },
+      {
+        "id": "title-top",
+        "content": ["Field", "Notes"],
+        "left": 58,
+        "top": 140,
+        "width": 480,
+        "fontFamily": "title",
+        "fontSize": 118,
+        "lineHeight": 104,
+        "fontWeight": 500,
+        "isTitle": true
+      },
+      {
+        "id": "title-bottom",
+        "content": ["Filmstrip"],
+        "left": 360,
+        "top": 430,
+        "width": 520,
+        "fontFamily": "title",
+        "fontSize": 118,
+        "lineHeight": 104,
+        "fontWeight": 500,
+        "italic": true,
+        "textAlign": "right",
+        "isTitle": true
+      },
+      {
+        "id": "detail",
+        "content": ["Example manifest", "Replace with your own media"],
+        "left": 60,
+        "top": 600,
+        "width": 330,
+        "fontFamily": "mono",
+        "fontSize": 13,
+        "lineHeight": 18,
+        "fontWeight": 500
+      }
+    ]
+  },
+  "clips": [
+    {
+      "file": "../examples/media/market.svg",
+      "clipStart": 0,
+      "clipDuration": 6,
+      "posterStart": 0,
+      "posterEnd": 9,
+      "revealFrames": 8,
+      "fadeFrames": 0,
+      "x": 430,
+      "y": 82,
+      "width": 420,
+      "height": 250,
+      "rotation": -1.5,
+      "cropX": 0.48,
+      "cropY": 0.5
+    },
+    {
+      "file": "../examples/media/workbench.svg",
+      "clipStart": 0,
+      "clipDuration": 6,
+      "posterStart": 0.9,
+      "posterEnd": 9,
+      "revealFrames": 8,
+      "fadeFrames": 0,
+      "x": 50,
+      "y": 220,
+      "width": 370,
+      "height": 245,
+      "rotation": 1.2,
+      "cropX": 0.52,
+      "cropY": 0.48
+    },
+    {
+      "file": "../examples/media/station.svg",
+      "clipStart": 0,
+      "clipDuration": 6,
+      "posterStart": 1.8,
+      "posterEnd": 9,
+      "revealFrames": 8,
+      "fadeFrames": 0,
+      "x": 470,
+      "y": 350,
+      "width": 370,
+      "height": 235,
+      "rotation": 1.6,
+      "cropX": 0.5,
+      "cropY": 0.5
+    },
+    {
+      "file": "../examples/media/window.svg",
+      "clipStart": 0,
+      "clipDuration": 6,
+      "posterStart": 2.7,
+      "posterEnd": 9,
+      "revealFrames": 8,
+      "fadeFrames": 0,
+      "x": 95,
+      "y": 70,
+      "width": 300,
+      "height": 205,
+      "rotation": -2,
+      "cropX": 0.5,
+      "cropY": 0.5
+    }
+  ]
+}

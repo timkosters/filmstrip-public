@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+apps/filmstrip/remotion-poster/node_modules/
+
+# Environment
+.env
+*.local
+
+# User media and generated assets
+apps/filmstrip/remotion-poster/downloads/
+apps/filmstrip/remotion-poster/public/assets/
+packages/image-pipeline/campaigns/*/shots/
+packages/image-pipeline/campaigns/*/approved/
+
+# Render outputs
+apps/filmstrip/remotion-poster/out/
+apps/filmstrip/remotion-poster/.remotion/
+
+# Per-user manifests
+apps/filmstrip/manifests/starter.json
+apps/filmstrip/manifests/*-local.json
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
