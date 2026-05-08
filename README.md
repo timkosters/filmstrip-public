@@ -1,15 +1,15 @@
 # Filmstrip
 
-Filmstrip turns a folder of photos, video clips, or generated stills into an editorial poster-style video. It includes a browser editor, a deterministic Remotion renderer, and an optional local OpenAI Images API pipeline for generating image sets with human approval.
+Filmstrip turns a folder of photos, video clips, or generated stills into an editorial poster-style video. It includes a browser editor, a deterministic Remotion renderer, and Codex-first instructions for using native ChatGPT/Codex image generation when available.
 
-This repo is designed to be handed to a coding agent. Give the agent your source photos or a campaign idea, then ask it to follow `AGENTS.md`.
+This repo is designed to be handed to Codex or another coding agent. Give the agent your source photos or a campaign idea, then ask it to follow `AGENTS.md`.
 
 ## What Is Included
 
 | Part | Path | Purpose |
 |---|---|---|
 | Filmstrip editor and renderer | `apps/filmstrip/` | Arrange media on a poster canvas and render MP4, GIF, or PNG. |
-| Image pipeline | `packages/image-pipeline/` | Generate variants, approve selected images, and export them into Filmstrip. |
+| Optional API image pipeline | `packages/image-pipeline/` | Standalone OpenAI Images API fallback for repeatable local generation and approval. |
 | Generic examples | `apps/filmstrip/examples/` | Small SVG media and a starter manifest for smoke testing. |
 
 ## Requirements
@@ -49,7 +49,18 @@ npm run editor
 
 Then open `http://localhost:5959`, add media from the source library, save the manifest, and render from the UI or CLI.
 
-## Generate Images First
+## Codex-First Image Generation
+
+The easiest workflow is usually to run this repo in Codex or ChatGPT with native image generation available through the user's ChatGPT account:
+
+1. Ask the agent to create a shot list or storyboard.
+2. Generate images natively in the conversation, keeping human approval in the loop.
+3. Put the approved image files in `apps/filmstrip/remotion-poster/downloads/`.
+4. Ask the agent to create or update a Filmstrip manifest and render the video.
+
+This path avoids requiring a separate OpenAI API key for the basic experience. If native image generation is unavailable, or you want a repeatable command-line workflow, use the optional API pipeline below.
+
+## Optional API Image Pipeline
 
 ```bash
 cd packages/image-pipeline
@@ -73,6 +84,8 @@ apps/filmstrip/bin/make-poster \
   --manifest apps/filmstrip/manifests/my-roll.json \
   --out apps/filmstrip/remotion-poster/out/my-roll.mp4
 ```
+
+OpenAI's [API image-generation docs](https://developers.openai.com/api/docs/guides/image-generation#choosing-the-right-api) note that API organization verification may be required for GPT Image models, including `gpt-image-2`. That is one reason the Codex/ChatGPT-native workflow is the recommended first path when it is available.
 
 ## Privacy Model
 

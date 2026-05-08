@@ -2,7 +2,7 @@
 
 A reusable local workflow for generating coherent image sets with OpenAI's Images API. It is storyboard first: write the campaign, generate variants, approve by hand, then export selected images into any downstream tool.
 
-Filmstrip is one downstream tool, but this package can also be used on its own.
+Filmstrip is one downstream tool, but this package can also be used on its own. If you are running Filmstrip inside Codex or ChatGPT and native image generation is available, prefer that path first; this package is for standalone API-backed generation.
 
 ## Setup
 
@@ -26,7 +26,7 @@ OPENAI_IMAGE_OUTPUT_FORMAT=jpeg
 OPENAI_IMAGE_OUTPUT_COMPRESSION=90
 ```
 
-OpenAI's image generation guide lists `gpt-image-2` as a GPT Image model and documents quality, size, format, and compression options. The model remains configurable through env vars and command flags.
+OpenAI's [image generation guide](https://developers.openai.com/api/docs/guides/image-generation#choosing-the-right-api) lists `gpt-image-2` as a GPT Image model and documents quality, size, format, and compression options. The docs also note that API organization verification may be required for GPT Image models. The model remains configurable through env vars and command flags.
 
 ## Quick Start
 
