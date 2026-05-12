@@ -59,6 +59,8 @@ Open the editor:
 
 Then open `http://localhost:5959`. Click media in the source library to add clips, arrange them on the canvas and timeline, save, then render.
 
+For rapid generated-image sequences, the editor has an Image seconds control for retiming every clip at once, plus a Frame panel for changing the shared image scale and background color/image.
+
 ## Render From A Folder
 
 ```bash

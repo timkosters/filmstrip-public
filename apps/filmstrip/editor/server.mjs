@@ -3,7 +3,7 @@ import {spawn} from 'node:child_process';
 import {createServer} from 'node:http';
 import {readFile, writeFile, stat} from 'node:fs/promises';
 import {createReadStream, existsSync, readFileSync, readdirSync, statSync} from 'node:fs';
-import {basename, extname, join, resolve} from 'node:path';
+import {basename, extname, join, resolve, sep} from 'node:path';
 import {parse} from 'node:url';
 
 const projectRoot = resolve(new URL('..', import.meta.url).pathname);
@@ -65,6 +65,8 @@ const streamFile = async (res, filePath, req) => {
   try {
     const info = await stat(filePath);
     const type = MIME[extname(filePath).toLowerCase()] || 'application/octet-stream';
+    const noStore = filePath.startsWith(editorDir) || extname(filePath).toLowerCase() === '.json';
+    const cacheHeaders = noStore ? {'cache-control': 'no-store'} : {};
     const range = req?.headers?.range;
     if (range) {
       const match = /bytes=(\d+)-(\d*)/.exec(range);
@@ -76,6 +78,7 @@ const streamFile = async (res, filePath, req) => {
           'content-range': `bytes ${start}-${end}/${info.size}`,
           'accept-ranges': 'bytes',
           'content-length': end - start + 1,
+          ...cacheHeaders,
         });
         createReadStream(filePath, {start, end}).pipe(res);
         return;
@@ -85,6 +88,7 @@ const streamFile = async (res, filePath, req) => {
       'content-type': type,
       'content-length': info.size,
       'accept-ranges': 'bytes',
+      ...cacheHeaders,
     });
     createReadStream(filePath).pipe(res);
   } catch (error) {
@@ -190,21 +194,35 @@ const openPath = (path) => {
   child.unref();
 };
 
-const listSources = () => {
-  if (!existsSync(downloadsDir)) return [];
-  return readdirSync(downloadsDir)
-    .filter((name) => !name.startsWith('.'))
-    .filter((name) => /\.(mp4|mov|webm|m4v|mkv|png|jpg|jpeg|webp|svg|mp3|wav|m4a|aac|ogg|flac)$/i.test(name))
-    .map((name) => {
-      const ext = name.slice(name.lastIndexOf('.')).toLowerCase();
-      const kind = /\.(mp3|wav|m4a|aac|ogg|flac)$/i.test(name)
+const mediaPattern = /\.(mp4|mov|webm|m4v|mkv|png|jpg|jpeg|webp|svg|mp3|wav|m4a|aac|ogg|flac)$/i;
+
+const safeResolveInside = (root, rel) => {
+  const absRoot = resolve(root);
+  const absPath = resolve(root, rel);
+  if (absPath !== absRoot && !absPath.startsWith(`${absRoot}${sep}`)) {
+    throw new Error(`Path escapes ${root}: ${rel}`);
+  }
+  return absPath;
+};
+
+const listSources = (dir = downloadsDir, prefix = '', depth = 0) => {
+  if (!existsSync(dir) || depth > 4) return [];
+  return readdirSync(dir, {withFileTypes: true})
+    .filter((entry) => !entry.name.startsWith('.'))
+    .flatMap((entry) => {
+      const rel = `${prefix}${entry.name}`;
+      const abs = join(dir, entry.name);
+      if (entry.isDirectory()) return listSources(abs, `${rel}/`, depth + 1);
+      if (!entry.isFile() || !mediaPattern.test(entry.name)) return [];
+      const ext = entry.name.slice(entry.name.lastIndexOf('.')).toLowerCase();
+      const kind = /\.(mp3|wav|m4a|aac|ogg|flac)$/i.test(ext)
         ? 'audio'
-        : /\.(mp4|mov|webm|m4v|mkv)$/i.test(name) ? 'video' : 'image';
-      return {
-        file: name,
-        size: statSync(join(downloadsDir, name)).size,
+        : /\.(mp4|mov|webm|m4v|mkv)$/i.test(ext) ? 'video' : 'image';
+      return [{
+        file: rel,
+        size: statSync(abs).size,
         kind,
-      };
+      }];
     });
 };
 
@@ -397,12 +415,12 @@ const server = createServer(async (req, res) => {
 
     if (pathname.startsWith('/source/')) {
       const name = decodeURIComponent(pathname.slice('/source/'.length));
-      return streamFile(res, join(downloadsDir, name), req);
+      return streamFile(res, safeResolveInside(downloadsDir, name), req);
     }
 
     if (pathname.startsWith('/public/')) {
       const rel = decodeURIComponent(pathname.slice('/public/'.length));
-      return streamFile(res, join(publicDir, rel), req);
+      return streamFile(res, safeResolveInside(publicDir, rel), req);
     }
 
     send(res, 404, `Not found: ${pathname}`);

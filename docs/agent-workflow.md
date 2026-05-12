@@ -27,6 +27,8 @@ Prefer native image generation when the user's Codex/ChatGPT environment support
 apps/filmstrip/bin/make-poster --manifest apps/filmstrip/manifests/my-roll.json --out apps/filmstrip/remotion-poster/out/my-roll.mp4
 ```
 
+For large image sets, keep the workflow disk-first: save generated files into a folder and show the user a folder path or compact contact sheet. Avoid embedding dozens of full-size generated images in the chat, because that makes long agent sessions slow to reload.
+
 ## User Wants API-Backed Local Generation
 
 Use this path when native image generation is unavailable, the user wants reproducible CLI runs, or the work needs an explicit campaign folder.
@@ -51,6 +53,17 @@ cd packages/image-pipeline
 ./bin/ai-image-pipeline.mjs export my-roll \
   --out ../../apps/filmstrip/remotion-poster/downloads \
   --manifest ../../apps/filmstrip/manifests/my-roll.json
+```
+
+For rapid one-image-after-another videos, export a centered sequence manifest:
+
+```bash
+./bin/ai-image-pipeline.mjs export my-roll \
+  --out ../../apps/filmstrip/remotion-poster/downloads \
+  --manifest ../../apps/filmstrip/manifests/my-roll-sequence.json \
+  --layout sequence \
+  --interval 0.3 \
+  --scale 86
 ```
 
 5. Render:

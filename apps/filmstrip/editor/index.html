@@ -19,6 +19,11 @@
         <span id="manifest-path" class="muted"></span>
       </div>
       <div class="right">
+        <label class="topbar-duration" title="Seconds each image stays visible">
+          Image (s)
+          <input id="image-interval" type="number" step="0.05" min="0.03" />
+        </label>
+        <button id="apply-image-interval" class="ghost" title="Retiming all clips in sequence">Apply</button>
         <label class="topbar-duration" title="Total poster duration in seconds">
           Total (s)
           <input id="poster-duration" type="number" step="0.5" min="2" />
@@ -42,6 +47,24 @@
       </section>
 
       <aside class="inspector">
+        <details id="frame-panel" open>
+          <summary>Frame</summary>
+          <div id="frame-form">
+            <div class="row">
+              <label>Color
+                <input id="frame-color" type="color" value="#f2eee5" />
+              </label>
+              <label>Image size (%)
+                <input id="frame-image-scale" type="number" step="1" min="45" max="100" value="86" />
+              </label>
+            </div>
+            <label>Frame image
+              <select id="frame-image"><option value="">(solid color)</option></select>
+            </label>
+            <button id="apply-frame-image-scale" class="ghost">Apply image size</button>
+          </div>
+        </details>
+        <hr />
         <details id="library-panel" open>
           <summary>Source library</summary>
           <ul id="library-list"></ul>
@@ -78,6 +101,7 @@
             </div>
             <button id="music-preview" class="ghost">Mute preview</button>
             <button id="music-clear" class="danger">Remove music</button>
+            <p id="music-status" class="muted small"></p>
           </div>
         </details>
         <hr />

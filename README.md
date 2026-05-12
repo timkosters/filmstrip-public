@@ -60,6 +60,8 @@ The easiest workflow is usually to run this repo in Codex or ChatGPT with native
 
 This path avoids requiring a separate OpenAI API key for the basic experience. If native image generation is unavailable, or you want a repeatable command-line workflow, use the optional API pipeline below.
 
+For large generated batches, keep the images on disk and share a folder path or compact contact sheet instead of embedding every image in the chat. That keeps agent sessions much faster to reopen and continue.
+
 ## Optional API Image Pipeline
 
 ```bash
@@ -75,6 +77,17 @@ Add `OPENAI_API_KEY` to `.env`, then:
 ./bin/ai-image-pipeline.mjs export my-roll \
   --out ../../apps/filmstrip/remotion-poster/downloads \
   --manifest ../../apps/filmstrip/manifests/my-roll.json
+```
+
+To make a fast aligned slideshow where every image appears in the same position, use the sequence layout:
+
+```bash
+./bin/ai-image-pipeline.mjs export my-roll \
+  --out ../../apps/filmstrip/remotion-poster/downloads \
+  --manifest ../../apps/filmstrip/manifests/my-roll-sequence.json \
+  --layout sequence \
+  --interval 0.3 \
+  --scale 86
 ```
 
 Render it:

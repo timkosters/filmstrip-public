@@ -81,13 +81,18 @@ body {
   width: 60px;
 }
 
-#text-panel summary {
+#text-panel summary,
+#frame-panel summary {
   cursor: pointer;
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--muted);
   margin-bottom: 6px;
+}
+#frame-form button.ghost {
+  width: 100%;
+  margin-top: 4px;
 }
 .text-block-editor {
   border: 1px solid var(--border);

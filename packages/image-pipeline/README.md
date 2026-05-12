@@ -96,8 +96,18 @@ init <campaign> [--template blank|photo-essay|event-recap] [--force]
 prompt <campaign> <shot-id> [--extra "..."]
 generate <campaign> <shot-id> [--variants 4] [--extra "..."] [--no-open] [--dry-run]
 approve <campaign> <shot-id> <variant-number>
-export <campaign> --out <dir> [--manifest <path>] [--duration <seconds>]
+export <campaign> --out <dir> [--manifest <path>] [--duration <seconds>] [--layout cascade|sequence]
 list <campaign>
+```
+
+Sequence export flags for fast aligned videos:
+
+```text
+--layout sequence          one image at a time in the same centered frame
+--interval 0.3             seconds each image stays visible
+--scale 86                 image size as a percentage of the Filmstrip canvas
+--width 900 --height 674   optional Filmstrip canvas dimensions
+--background "#f4efe4"     optional frame/background color
 ```
 
 Generation flags:
