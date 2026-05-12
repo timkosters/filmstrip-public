@@ -2,6 +2,8 @@
 
 This folder contains the browser editor and Remotion renderer only. AI image generation lives in `../../packages/image-pipeline` and communicates by writing approved images into `remotion-poster/downloads/`.
 
+For large generated still batches, keep files on disk and show a folder path or compact contact sheet. Do not inline dozens of full-size generated images in chat; it makes long agent sessions slow to reload.
+
 ## Main Paths
 
 | Path | Use |

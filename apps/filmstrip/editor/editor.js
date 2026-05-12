@@ -42,10 +42,35 @@ const fields = {};
 document.documentElement.style.setProperty('--stage-w', BASE_WIDTH + 'px');
 document.documentElement.style.setProperty('--stage-h', BASE_HEIGHT + 'px');
 
-async function fetchJson(url, options) {
-  const res = await fetch(url, options);
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
+function canvasDimensions() {
+  return {
+    width: Number(state.manifest.width ?? state.preset?.width ?? BASE_WIDTH) || BASE_WIDTH,
+    height: Number(state.manifest.height ?? state.preset?.height ?? BASE_HEIGHT) || BASE_HEIGHT,
+  };
+}
+
+function syncStageDimensions() {
+  const {width, height} = canvasDimensions();
+  document.documentElement.style.setProperty('--stage-w', width + 'px');
+  document.documentElement.style.setProperty('--stage-h', height + 'px');
+}
+
+async function fetchJson(url, options = {}) {
+  const {timeoutMs = 15000, ...fetchOptions} = options || {};
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, {...fetchOptions, signal: controller.signal});
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      throw new Error(`Request timed out while contacting ${url}`);
+    }
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 function toSeconds(value) {
@@ -71,6 +96,7 @@ async function init() {
   bindInspector();
   bindMusic();
   bindTextPanel();
+  bindFramePanel();
   bindProjects();
   bindExportModal();
   bindKeyboard();
@@ -88,6 +114,7 @@ async function loadAll() {
   pushHistory(true);
   renderProjectSelect();
   renderStage();
+  renderFramePanel();
   renderTextPanel();
   renderSourcesDropdown();
   renderSourceLibrary();
@@ -96,6 +123,7 @@ async function loadAll() {
   renderMusicForm();
   ensureMusicAudio();
   syncDurationInput();
+  syncImageIntervalInput();
 }
 
 function derivePresetFromManifest(manifest) {
@@ -104,7 +132,7 @@ function derivePresetFromManifest(manifest) {
   return {
     width: manifest.width ?? 900,
     height: manifest.height ?? 674,
-    background: manifest.background ?? {color: '#faf7f0', textureOpacity: 0.22},
+    background: manifest.background ?? {color: '#faf7f0', textureOpacity: 0.22, image: null, imageOpacity: 1},
     text: manifest.text ?? {
       color: '#1a1713',
       overlapColor: '#e4703b',
@@ -118,7 +146,14 @@ function derivePresetFromManifest(manifest) {
 
 function snapshotManifest() {
   return JSON.parse(JSON.stringify({
+    name: state.manifest.name,
     duration: state.manifest.duration,
+    width: state.manifest.width,
+    height: state.manifest.height,
+    fps: state.manifest.fps,
+    background: state.manifest.background ?? state.preset?.background ?? null,
+    text: state.manifest.text ?? state.preset?.text ?? null,
+    logo: state.manifest.logo ?? state.preset?.logo ?? null,
     clips: state.manifest.clips,
     music: state.manifest.music ?? null,
   }));
@@ -138,21 +173,116 @@ function pushHistory(initial = false) {
 }
 
 function restoreSnapshot(snap) {
+  state.manifest.name = snap.name;
   state.manifest.duration = snap.duration;
+  state.manifest.width = snap.width;
+  state.manifest.height = snap.height;
+  state.manifest.fps = snap.fps;
+  state.manifest.background = snap.background ? JSON.parse(JSON.stringify(snap.background)) : null;
+  state.manifest.text = snap.text ? JSON.parse(JSON.stringify(snap.text)) : null;
+  state.manifest.logo = snap.logo ? JSON.parse(JSON.stringify(snap.logo)) : null;
   state.manifest.clips = JSON.parse(JSON.stringify(snap.clips));
   state.manifest.music = snap.music ? JSON.parse(JSON.stringify(snap.music)) : null;
+  state.preset = derivePresetFromManifest(state.manifest);
   state.selectedIndex = Math.min(state.selectedIndex, state.manifest.clips.length - 1);
+  renderStage();
+  renderFramePanel();
+  renderTextPanel();
   renderWindows();
   renderTimeline();
   renderInspectorValues();
   renderMusicForm();
   ensureMusicAudio();
   syncDurationInput();
+  syncImageIntervalInput();
 }
 
 function syncDurationInput() {
   const el = document.getElementById('poster-duration');
   if (el) el.value = state.manifest.duration ?? totalDuration();
+}
+
+function currentImageInterval() {
+  const durations = state.manifest.clips
+    .map((clip) => Number(clip.posterEnd ?? 0) - Number(clip.posterStart ?? 0))
+    .filter((value) => Number.isFinite(value) && value > 0);
+  if (durations.length === 0) return 0;
+  const average = durations.reduce((sum, value) => sum + value, 0) / durations.length;
+  return Math.round(average * 1000) / 1000;
+}
+
+function syncImageIntervalInput() {
+  const el = document.getElementById('image-interval');
+  if (!el) return;
+  const interval = currentImageInterval();
+  el.value = interval ? String(interval) : '';
+}
+
+function currentSharedImageScale() {
+  const clips = state.manifest.clips || [];
+  if (clips.length === 0) return 100;
+  const {width: canvasWidth, height: canvasHeight} = canvasDimensions();
+  const averages = clips
+    .map((clip) => {
+      const w = Number(clip.width ?? canvasWidth) / canvasWidth;
+      const h = Number(clip.height ?? canvasHeight) / canvasHeight;
+      return (w + h) / 2;
+    })
+    .filter((value) => Number.isFinite(value) && value > 0);
+  if (averages.length === 0) return 100;
+  const avg = averages.reduce((sum, value) => sum + value, 0) / averages.length;
+  return Math.round(avg * 100);
+}
+
+function colorInputValue(value, fallback = '#faf7f0') {
+  return /^#[0-9a-f]{6}$/i.test(String(value || '')) ? value : fallback;
+}
+
+function applySharedImageScale(percent) {
+  const value = Math.max(45, Math.min(100, Number(percent)));
+  if (!Number.isFinite(value)) return false;
+  const scale = value / 100;
+  const {width: canvasWidth, height: canvasHeight} = canvasDimensions();
+  const width = Math.round(canvasWidth * scale);
+  const height = Math.round(canvasHeight * scale);
+  const x = Math.round((canvasWidth - width) / 2);
+  const y = Math.round((canvasHeight - height) / 2);
+  state.manifest.clips.forEach((clip) => {
+    clip.x = x;
+    clip.y = y;
+    clip.width = width;
+    clip.height = height;
+    clip.rotation = clip.rotation ?? 0;
+  });
+  pushHistory();
+  renderWindows();
+  renderTimeline();
+  renderInspectorValues();
+  renderFramePanel();
+  return true;
+}
+
+function applyImageInterval(seconds) {
+  if (!Number.isFinite(seconds) || seconds <= 0) return false;
+  state.manifest.clips.forEach((clip, index) => {
+    const start = Math.round(index * seconds * 1000) / 1000;
+    const end = Math.round((index + 1) * seconds * 1000) / 1000;
+    clip.posterStart = start;
+    clip.posterEnd = end;
+    clip.revealFrames = 0;
+    clip.fadeFrames = 0;
+  });
+  state.manifest.duration = Math.round(state.manifest.clips.length * seconds * 1000) / 1000;
+  state.currentTime = Math.min(state.currentTime, state.manifest.duration);
+  pushHistory();
+  renderTimeline();
+  applyVisibility();
+  syncVideosToTime();
+  syncMusicAudio();
+  updatePlayhead();
+  syncDurationInput();
+  syncImageIntervalInput();
+  return true;
 }
 
 function undo() {
@@ -168,7 +298,22 @@ function redo() {
 
 function renderStage() {
   const p = state.preset;
-  paper.style.background = p.background?.color || '#faf7f0';
+  syncStageDimensions();
+  const bg = p.background ?? {};
+  const color = bg.color || '#faf7f0';
+  paper.style.backgroundColor = color;
+  if (bg.image) {
+    const url = bg.image.startsWith('assets/') || bg.image.startsWith('public/')
+      ? `/public/${bg.image.replace(/^public\//, '')}`
+      : `/source/${encodeURIComponent(bg.image)}`;
+    paper.style.backgroundImage = `url("${url}")`;
+    paper.style.backgroundSize = 'cover';
+    paper.style.backgroundPosition = 'center';
+    paper.style.backgroundRepeat = 'no-repeat';
+    paper.style.backgroundBlendMode = 'normal';
+  } else {
+    paper.style.backgroundImage = '';
+  }
   textLayer.innerHTML = '';
   for (const block of p.text.blocks) {
     const el = document.createElement('div');
@@ -240,6 +385,37 @@ function renderSourceLibrary() {
   }
 }
 
+function renderFramePanel() {
+  const colorInput = document.getElementById('frame-color');
+  const imageSelect = document.getElementById('frame-image');
+  const scaleInput = document.getElementById('frame-image-scale');
+  if (!colorInput || !imageSelect || !scaleInput) return;
+  const bg = state.manifest.background ?? state.preset.background ?? {};
+  colorInput.value = colorInputValue(bg.color);
+  scaleInput.value = String(currentSharedImageScale());
+  const current = bg.image || '';
+  const opts = ['<option value="">(solid color)</option>'];
+  for (const src of state.sources) {
+    if ((src.kind || inferKind(src.file)) === 'image') {
+      opts.push(`<option value="${src.file}">${src.file}</option>`);
+    }
+  }
+  imageSelect.innerHTML = opts.join('');
+  imageSelect.value = current;
+}
+
+function updateFrameBackground(patch) {
+  state.manifest.background = {
+    ...(state.preset.background ?? {}),
+    ...(state.manifest.background ?? {}),
+    ...patch,
+  };
+  state.preset = derivePresetFromManifest(state.manifest);
+  pushHistory();
+  renderStage();
+  renderFramePanel();
+}
+
 function inferKind(name) {
   if (/\.(mp3|wav|m4a|aac|ogg|flac)$/i.test(name)) return 'audio';
   if (/\.(mp4|mov|webm|m4v|mkv)$/i.test(name)) return 'video';
@@ -271,6 +447,7 @@ function renderMusicForm() {
   const fadeIn = document.getElementById('music-fadeInFrames');
   const fadeOut = document.getElementById('music-fadeOutFrames');
   const preview = document.getElementById('music-preview');
+  const status = document.getElementById('music-status');
   if (!fileSel) return;
   if (m && m.file) {
     fileSel.value = m.file;
@@ -287,6 +464,7 @@ function renderMusicForm() {
   }
   preview.textContent = state.musicPreviewMuted ? 'Unmute preview' : 'Mute preview';
   preview.classList.toggle('muted', state.musicPreviewMuted);
+  if (status && (!m || !m.file)) status.textContent = '';
 }
 
 function ensureMusicAudio() {
@@ -344,10 +522,20 @@ function syncMusicAudio() {
   a.muted = state.musicPreviewMuted;
   a.volume = computeMusicVolume(t);
   if (state.isPlaying && active && !state.musicPreviewMuted) {
-    if (a.paused || a.ended) a.play().catch(() => {});
+    if (a.paused || a.ended) {
+      a.play()
+        .then(() => setMusicStatus(''))
+        .catch((error) => setMusicStatus(`Audio blocked: ${error.message || error}`));
+    }
   } else {
     if (!a.paused) a.pause();
   }
+}
+
+function setMusicStatus(message) {
+  const status = document.getElementById('music-status');
+  if (!status) return;
+  status.textContent = message || '';
 }
 
 function bindMusic() {
@@ -452,8 +640,9 @@ function renderWindows() {
     overlap.className = 'overlap-text';
     overlap.style.left = (-(clip.x ?? 0)) + 'px';
     overlap.style.top = (-(clip.y ?? 0)) + 'px';
-    overlap.style.width = BASE_WIDTH + 'px';
-    overlap.style.height = BASE_HEIGHT + 'px';
+    const {width: canvasWidth, height: canvasHeight} = canvasDimensions();
+    overlap.style.width = canvasWidth + 'px';
+    overlap.style.height = canvasHeight + 'px';
     const inverseRotate = clip.rotation ? ` rotate(${-clip.rotation}deg)` : '';
     if (inverseRotate) {
       overlap.style.transformOrigin = `${(clip.width ?? 0) / 2 + (clip.x ?? 0)}px ${(clip.height ?? 0) / 2 + (clip.y ?? 0)}px`;
@@ -542,6 +731,7 @@ function wireMoveable() {
   if (state.selectedIndex < 0) return;
   const target = windowsLayer.querySelector(`.window-box[data-index="${state.selectedIndex}"]`);
   if (!target) return;
+  const {width: canvasWidth, height: canvasHeight} = canvasDimensions();
 
   state.moveable = new Moveable(stage, {
     target,
@@ -558,8 +748,8 @@ function wireMoveable() {
     snapGridWidth: 10,
     snapGridHeight: 10,
     snapThreshold: 6,
-    verticalGuidelines: [0, BASE_WIDTH / 2, BASE_WIDTH],
-    horizontalGuidelines: [0, BASE_HEIGHT / 2, BASE_HEIGHT],
+    verticalGuidelines: [0, canvasWidth / 2, canvasWidth],
+    horizontalGuidelines: [0, canvasHeight / 2, canvasHeight],
   });
 
   const updateOverlapOffset = (left, top) => {
@@ -667,6 +857,36 @@ function bindInspector() {
   });
 }
 
+function bindFramePanel() {
+  const colorInput = document.getElementById('frame-color');
+  const imageSelect = document.getElementById('frame-image');
+  const scaleInput = document.getElementById('frame-image-scale');
+  const applyScale = document.getElementById('apply-frame-image-scale');
+  if (!colorInput || !imageSelect || !scaleInput || !applyScale) return;
+
+  colorInput.addEventListener('change', () => {
+    updateFrameBackground({color: colorInput.value || '#faf7f0'});
+  });
+  imageSelect.addEventListener('change', () => {
+    updateFrameBackground({image: imageSelect.value || null, imageOpacity: 1});
+  });
+  const apply = () => {
+    if (!applySharedImageScale(Number(scaleInput.value))) {
+      scaleInput.value = String(currentSharedImageScale());
+    }
+  };
+  applyScale.addEventListener('click', (e) => {
+    apply();
+    e.currentTarget.blur();
+  });
+  scaleInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      apply();
+    }
+  });
+}
+
 function bindTopbar() {
   document.getElementById('save').addEventListener('click', save);
   document.getElementById('export').addEventListener('click', openExportModal);
@@ -695,6 +915,28 @@ function bindTopbar() {
     syncVideosToTime();
     updatePlayhead();
   });
+
+  const intervalInput = document.getElementById('image-interval');
+  const applyIntervalButton = document.getElementById('apply-image-interval');
+  if (intervalInput && applyIntervalButton) {
+    syncImageIntervalInput();
+    const applyInterval = () => {
+      const seconds = Number(intervalInput.value);
+      if (!applyImageInterval(seconds)) {
+        intervalInput.value = currentImageInterval() || '';
+      }
+    };
+    applyIntervalButton.addEventListener('click', (e) => {
+      applyInterval();
+      e.currentTarget.blur();
+    });
+    intervalInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        applyInterval();
+      }
+    });
+  }
 
   stage.addEventListener('mousedown', (evt) => {
     if (!evt.target.closest('.window-box') && !evt.target.closest('.moveable-control')) {
@@ -855,6 +1097,7 @@ function addClip() {
 let exportPoll = null;
 let exportJobId = null;
 let exportPath = null;
+let exportPollFailures = 0;
 
 function openExportModal() {
   if (state.isPlaying) togglePlay();
@@ -882,6 +1125,7 @@ function closeExportModal() {
   document.getElementById('export-modal').hidden = true;
   if (exportPoll) {clearInterval(exportPoll); exportPoll = null;}
   exportJobId = null;
+  exportPollFailures = 0;
 }
 
 async function startExport() {
@@ -902,14 +1146,16 @@ async function startExport() {
   startBtn.textContent = 'Rendering…';
 
   try {
-    await save();
+    await save({throwOnError: true, timeoutMs: 10000});
     phase.textContent = 'Starting render…';
     const job = await fetchJson('/api/render', {
       method: 'POST',
       headers: {'content-type': 'application/json'},
       body: JSON.stringify({filename}),
+      timeoutMs: 10000,
     });
     exportJobId = job.id;
+    exportPollFailures = 0;
     exportPath = job.outFile;
     phase.textContent = `Rendering to ${job.outFile.split('/').pop()}…`;
     exportPoll = setInterval(pollExport, 400);
@@ -924,7 +1170,8 @@ async function startExport() {
 async function pollExport() {
   if (!exportJobId) return;
   try {
-    const status = await fetchJson('/api/render/' + exportJobId);
+    const status = await fetchJson('/api/render/' + exportJobId, {timeoutMs: 5000});
+    exportPollFailures = 0;
     const phase = document.getElementById('export-phase');
     const fill = document.getElementById('export-progress-fill');
     if (status.lastProgress) {
@@ -953,7 +1200,16 @@ async function pollExport() {
       document.getElementById('export-start').disabled = false;
       document.getElementById('export-start').textContent = 'Retry';
     }
-  } catch (_) {/* keep polling */}
+  } catch (error) {
+    exportPollFailures += 1;
+    if (exportPollFailures < 5) return;
+    clearInterval(exportPoll); exportPoll = null;
+    const err = document.getElementById('export-error');
+    err.hidden = false;
+    err.textContent = 'Render status stopped responding: ' + (error.message || error);
+    document.getElementById('export-start').disabled = false;
+    document.getElementById('export-start').textContent = 'Retry';
+  }
 }
 
 function bindExportModal() {
@@ -992,12 +1248,14 @@ function bindExportModal() {
   });
 }
 
-async function save() {
+async function save(options = {}) {
+  const throwOnError = Boolean(options.throwOnError);
+  const timeoutMs = Number(options.timeoutMs) || 10000;
   saveStatus.textContent = 'Saving…';
   try {
     const body = {
       name: state.manifest.name,
-      duration: Math.ceil(totalDuration()),
+      duration: state.manifest.duration ?? totalDuration(),
       width: state.manifest.width ?? state.preset.width,
       height: state.manifest.height ?? state.preset.height,
       fps: state.manifest.fps ?? 30,
@@ -1011,10 +1269,14 @@ async function save() {
       method: 'POST',
       headers: {'content-type': 'application/json'},
       body: JSON.stringify(body),
+      timeoutMs,
     });
     saveStatus.textContent = `Saved ${new Date().toLocaleTimeString()}`;
+    return true;
   } catch (error) {
     saveStatus.textContent = 'Save failed: ' + error.message;
+    if (throwOnError) throw error;
+    return false;
   }
 }
 
@@ -1384,9 +1646,11 @@ function tick(now) {
   if (state.currentTime < prevTime) {
     // Loop wrap: pause everything so sync re-activates clips cleanly from clipStart
     pauseAllVideos();
+    if (state.musicAudio && !state.musicAudio.paused) state.musicAudio.pause();
   }
   applyVisibility();
   syncVideosToTime();
+  syncMusicAudio();
   updatePlayhead();
   requestAnimationFrame(tick);
 }

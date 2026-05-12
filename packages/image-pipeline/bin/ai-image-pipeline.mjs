@@ -26,7 +26,7 @@ const usage = () => {
   ai-image-pipeline prompt <campaign> <shot-id> [--extra "..."]
   ai-image-pipeline generate <campaign> <shot-id> [--variants 4] [--no-open]
   ai-image-pipeline approve <campaign> <shot-id> <variant-number>
-  ai-image-pipeline export <campaign> --out <dir> [--manifest <path>]
+  ai-image-pipeline export <campaign> --out <dir> [--manifest <path>] [--layout cascade|sequence]
   ai-image-pipeline list <campaign>
 
 env:
@@ -456,7 +456,9 @@ const approvedImages = (campaign) => {
     .sort();
 };
 
-const makeFilmstripClips = (files, duration) => {
+const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+
+const makeCascadeClips = (files, duration) => {
   const positions = [
     {x: 430, y: 82, width: 420, height: 250, rotation: -1.5},
     {x: 50, y: 220, width: 370, height: 245, rotation: 1.2},
@@ -482,6 +484,41 @@ const makeFilmstripClips = (files, duration) => {
   });
 };
 
+const makeSequenceWindow = (flags) => {
+  const baseWidth = Number(flags.width || 900);
+  const baseHeight = Number(flags.height || 674);
+  const scale = clamp(Number(flags.scale || 86), 20, 100) / 100;
+  const width = Math.round(baseWidth * scale);
+  const height = Math.round(baseHeight * scale);
+  return {
+    x: Math.round((baseWidth - width) / 2),
+    y: Math.round((baseHeight - height) / 2),
+    width,
+    height,
+  };
+};
+
+const makeSequenceClips = (files, interval, flags) => {
+  const window = makeSequenceWindow(flags);
+  return files.map((file, index) => {
+    const start = Math.round(index * interval * 1000) / 1000;
+    const end = Math.round((index + 1) * interval * 1000) / 1000;
+    return {
+      file,
+      clipStart: 0,
+      clipDuration: Math.max(1, interval),
+      posterStart: start,
+      posterEnd: end,
+      revealFrames: 0,
+      fadeFrames: 0,
+      rotation: 0,
+      cropX: 0.5,
+      cropY: 0.5,
+      ...window,
+    };
+  });
+};
+
 const commandExport = ({positional, flags}) => {
   const [campaign] = positional;
   if (!campaign || !flags.out) usage();
@@ -496,12 +533,28 @@ const commandExport = ({positional, flags}) => {
   console.log(`Copied ${files.length} approved image${files.length === 1 ? '' : 's'} to ${outDir}`);
 
   if (flags.manifest) {
-    const duration = Number(flags.duration || 10);
+    const layout = flags.layout || (flags.sequence ? 'sequence' : 'cascade');
+    const interval = Number(flags.interval || 0.3);
+    if (layout === 'sequence' && (!Number.isFinite(interval) || interval <= 0)) {
+      throw new Error('--interval must be a positive number of seconds.');
+    }
+    if (!['cascade', 'sequence'].includes(layout)) {
+      throw new Error('--layout must be either cascade or sequence.');
+    }
+    const duration = layout === 'sequence'
+      ? Number(flags.duration || Math.round(files.length * interval * 1000) / 1000)
+      : Number(flags.duration || 10);
     const manifest = {
       name: titleize(campaign),
       duration,
-      clips: makeFilmstripClips(files, duration),
+      clips: layout === 'sequence' ? makeSequenceClips(files, interval, flags) : makeCascadeClips(files, duration),
     };
+    if (flags.width) manifest.width = Number(flags.width);
+    if (flags.height) manifest.height = Number(flags.height);
+    if (flags.fps) manifest.fps = Number(flags.fps);
+    if (flags.background) {
+      manifest.background = {color: flags.background, textureOpacity: 0};
+    }
     const manifestPath = resolve(flags.manifest);
     mkdirSync(dirname(manifestPath), {recursive: true});
     writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);

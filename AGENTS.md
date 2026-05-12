@@ -22,6 +22,7 @@ You are helping a user make a short filmstrip-style video from their own media o
    - ask the user to approve images before using them
    - save or place approved image files in `apps/filmstrip/remotion-poster/downloads/`
    - create or update a manifest for the approved images
+   - for large batches, keep the images on disk and show a folder path or small contact sheet instead of embedding dozens of full images in the chat
 4. If native image generation is unavailable, or the user wants a repeatable CLI/API workflow, use `packages/image-pipeline`:
    - create a campaign from `photo-essay`, `event-recap`, or `blank`
    - edit `campaign.json` and `storyboard.md` for the user
@@ -52,6 +53,7 @@ cd packages/image-pipeline
 ## Guardrails
 
 - Never commit `.env`, generated images, approved images, user uploads, or render outputs.
+- Keep image-batch workflows disk-first; heavy inline image threads are slow to reopen and harder for agents to continue.
 - Keep example media generic and small.
 - Keep prompt templates fictional unless the user explicitly provides consented references.
 - Prefer native Codex/ChatGPT image generation for the happy path. Use `packages/image-pipeline` when the user needs API-backed local generation.

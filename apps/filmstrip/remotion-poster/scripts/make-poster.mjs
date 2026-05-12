@@ -320,6 +320,26 @@ Common:
     console.log(`  music: ${musicSpec.file} -> ${destName} (vol ${music.volume}, fade ${music.fadeInFrames}/${music.fadeOutFrames})`);
   }
 
+  const background = {
+    ...basePreset.background,
+    ...(manifestData.background ?? {}),
+    color: args.background || manifestData.background?.color || basePreset.background.color,
+  };
+  if (background.image) {
+    const originalBackgroundImage = background.image;
+    const bgSrc = findSourceFile(originalBackgroundImage, searchRoots);
+    if (bgSrc) {
+      const bgDestName = `background-${safeName(basename(originalBackgroundImage, extname(originalBackgroundImage)))}${extname(originalBackgroundImage).toLowerCase()}`;
+      const bgDest = join(publicAssetsDir, bgDestName);
+      cpSync(bgSrc, bgDest);
+      background.image = `assets/${bgDestName}`;
+      console.log(`  background: ${originalBackgroundImage} -> ${bgDestName}`);
+    } else if (!existsSync(join(publicDir, originalBackgroundImage))) {
+      console.warn(`  WARN: background image not found: ${originalBackgroundImage}`);
+      background.image = null;
+    }
+  }
+
   const preset = {
     ...basePreset,
     width: effectiveWidth,
@@ -328,11 +348,7 @@ Common:
     durationInFrames,
     seed: Number(args.seed || basePreset.seed),
     stillFrame: args.still ? durationInFrames - 1 : null,
-    background: {
-      ...basePreset.background,
-      ...(manifestData.background ?? {}),
-      color: args.background || manifestData.background?.color || basePreset.background.color,
-    },
+    background,
     text: {
       ...basePreset.text,
       ...(manifestData.text ?? {}),
