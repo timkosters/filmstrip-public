@@ -1,6 +1,6 @@
 # Poster Editor
 
-Browser-based visual editor for the Filmstrip manifest. Reads/writes `manifests/<name>.json` and lets you drag, resize, rotate, trim, and sequence media clips on a 900×674 canvas with a scrubbable timeline.
+Browser-based visual editor for the Filmstrip manifest. Reads/writes `manifests/<name>.json` and lets you drag, resize, rotate, trim, and sequence media clips on a manifest-sized canvas with a scrubbable timeline. The default canvas is 900x674.
 
 Render is handled by Remotion via `./bin/make-poster`. The editor can start a render job, but all encoding still happens in the Remotion CLI.
 
@@ -24,6 +24,8 @@ Open http://localhost:5959 after launch.
 | Visibility + fade-out per clip window | `editor.js` → `applyVisibility` |
 | Timeline drag + edge trim + snap | `editor.js` → `startClipDrag`, `applySnap`, `collectSnapTargets` |
 | Source library (click to add clip) | `editor.js` → `renderSourceLibrary`, `addClipFromSource` |
+| Bulk image interval / scale controls | `editor.js` → `applyImageInterval`, `applySharedImageScale` |
+| Frame background controls | `editor.js` → `renderFramePanel`, `updateFrameBackground` |
 | Undo / redo (snapshot history) | `editor.js` → `pushHistory`, `undo`, `redo` |
 | Keyboard shortcuts | `editor.js` → `bindKeyboard` |
 | Save to disk | `editor.js` → `save`, `server.mjs` → `POST /api/manifest` |
@@ -33,13 +35,13 @@ Open http://localhost:5959 after launch.
 
 Single `state` object in `editor.js`:
 
-- `state.preset` — base preset (text layout, fonts, logo, canvas size). Read-only in the editor; edited by hand in `src/default-preset.json`.
-- `state.manifest` — `{duration, clips[]}`. The editor mutates `clips[]` in place and on save POSTs it to the server.
+- `state.preset` — effective preset derived from the manifest plus fallback defaults.
+- `state.manifest` — `{duration, width, height, background, text, logo, clips[]}`. The editor mutates clips, duration, music, and frame background in place and on save POSTs it to the server.
 - `state.currentTime` — scrubber position in seconds (not tied to render fps).
 - `state.selectedIndex` — index into `state.manifest.clips`, or `-1`.
 - `state.history[]` + `state.historyIndex` — undo stack, snapshots of the manifest after each commit.
 
-Every mutation follows the pattern: mutate `state.manifest.clips[i]` → `pushHistory()` → `renderTimeline()` / `renderWindows()` / `applyVisibility()` / `syncVideosToTime()` / `renderInspectorValues()` as needed.
+Every mutation follows the pattern: mutate `state.manifest` → `pushHistory()` → `renderTimeline()` / `renderWindows()` / `renderStage()` / `applyVisibility()` / `syncVideosToTime()` / `renderInspectorValues()` as needed.
 
 ## Video playback contract
 

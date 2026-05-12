@@ -70,7 +70,7 @@ For rapid one-image-after-another videos, export a centered sequence manifest:
 
 ```bash
 cd ../..
-apps/filmstrip/bin/make-poster --manifest apps/filmstrip/manifests/my-roll.json --out apps/filmstrip/remotion-poster/out/my-roll.mp4
+apps/filmstrip/bin/make-poster --manifest apps/filmstrip/manifests/my-roll-sequence.json --out apps/filmstrip/remotion-poster/out/my-roll.mp4
 ```
 
 ## Notes For Agents

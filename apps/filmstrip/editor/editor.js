@@ -42,6 +42,19 @@ const fields = {};
 document.documentElement.style.setProperty('--stage-w', BASE_WIDTH + 'px');
 document.documentElement.style.setProperty('--stage-h', BASE_HEIGHT + 'px');
 
+function canvasDimensions() {
+  return {
+    width: Number(state.manifest.width ?? state.preset?.width ?? BASE_WIDTH) || BASE_WIDTH,
+    height: Number(state.manifest.height ?? state.preset?.height ?? BASE_HEIGHT) || BASE_HEIGHT,
+  };
+}
+
+function syncStageDimensions() {
+  const {width, height} = canvasDimensions();
+  document.documentElement.style.setProperty('--stage-w', width + 'px');
+  document.documentElement.style.setProperty('--stage-h', height + 'px');
+}
+
 async function fetchJson(url, options = {}) {
   const {timeoutMs = 15000, ...fetchOptions} = options || {};
   const controller = new AbortController();
@@ -208,10 +221,11 @@ function syncImageIntervalInput() {
 function currentSharedImageScale() {
   const clips = state.manifest.clips || [];
   if (clips.length === 0) return 100;
+  const {width: canvasWidth, height: canvasHeight} = canvasDimensions();
   const averages = clips
     .map((clip) => {
-      const w = Number(clip.width ?? BASE_WIDTH) / BASE_WIDTH;
-      const h = Number(clip.height ?? BASE_HEIGHT) / BASE_HEIGHT;
+      const w = Number(clip.width ?? canvasWidth) / canvasWidth;
+      const h = Number(clip.height ?? canvasHeight) / canvasHeight;
       return (w + h) / 2;
     })
     .filter((value) => Number.isFinite(value) && value > 0);
@@ -228,10 +242,11 @@ function applySharedImageScale(percent) {
   const value = Math.max(45, Math.min(100, Number(percent)));
   if (!Number.isFinite(value)) return false;
   const scale = value / 100;
-  const width = Math.round(BASE_WIDTH * scale);
-  const height = Math.round(BASE_HEIGHT * scale);
-  const x = Math.round((BASE_WIDTH - width) / 2);
-  const y = Math.round((BASE_HEIGHT - height) / 2);
+  const {width: canvasWidth, height: canvasHeight} = canvasDimensions();
+  const width = Math.round(canvasWidth * scale);
+  const height = Math.round(canvasHeight * scale);
+  const x = Math.round((canvasWidth - width) / 2);
+  const y = Math.round((canvasHeight - height) / 2);
   state.manifest.clips.forEach((clip) => {
     clip.x = x;
     clip.y = y;
@@ -283,6 +298,7 @@ function redo() {
 
 function renderStage() {
   const p = state.preset;
+  syncStageDimensions();
   const bg = p.background ?? {};
   const color = bg.color || '#faf7f0';
   paper.style.backgroundColor = color;
@@ -624,8 +640,9 @@ function renderWindows() {
     overlap.className = 'overlap-text';
     overlap.style.left = (-(clip.x ?? 0)) + 'px';
     overlap.style.top = (-(clip.y ?? 0)) + 'px';
-    overlap.style.width = BASE_WIDTH + 'px';
-    overlap.style.height = BASE_HEIGHT + 'px';
+    const {width: canvasWidth, height: canvasHeight} = canvasDimensions();
+    overlap.style.width = canvasWidth + 'px';
+    overlap.style.height = canvasHeight + 'px';
     const inverseRotate = clip.rotation ? ` rotate(${-clip.rotation}deg)` : '';
     if (inverseRotate) {
       overlap.style.transformOrigin = `${(clip.width ?? 0) / 2 + (clip.x ?? 0)}px ${(clip.height ?? 0) / 2 + (clip.y ?? 0)}px`;
@@ -714,6 +731,7 @@ function wireMoveable() {
   if (state.selectedIndex < 0) return;
   const target = windowsLayer.querySelector(`.window-box[data-index="${state.selectedIndex}"]`);
   if (!target) return;
+  const {width: canvasWidth, height: canvasHeight} = canvasDimensions();
 
   state.moveable = new Moveable(stage, {
     target,
@@ -730,8 +748,8 @@ function wireMoveable() {
     snapGridWidth: 10,
     snapGridHeight: 10,
     snapThreshold: 6,
-    verticalGuidelines: [0, BASE_WIDTH / 2, BASE_WIDTH],
-    horizontalGuidelines: [0, BASE_HEIGHT / 2, BASE_HEIGHT],
+    verticalGuidelines: [0, canvasWidth / 2, canvasWidth],
+    horizontalGuidelines: [0, canvasHeight / 2, canvasHeight],
   });
 
   const updateOverlapOffset = (left, top) => {

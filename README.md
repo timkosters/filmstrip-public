@@ -94,7 +94,7 @@ Render it:
 
 ```bash
 apps/filmstrip/bin/make-poster \
-  --manifest apps/filmstrip/manifests/my-roll.json \
+  --manifest apps/filmstrip/manifests/my-roll-sequence.json \
   --out apps/filmstrip/remotion-poster/out/my-roll.mp4
 ```
 
